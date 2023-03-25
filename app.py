@@ -10,7 +10,10 @@ data = pd.read_csv("auto_sales.csv")
 data.rename(columns={
     'TSLA': 'Tesla', 'HMC': 'Honda', 'HMC': 'Honda', 'HYMTF': 'Huyndai',
     'CVX': 'Chevrolet', 'TM': 'Toyota', 'F': 'Ford',
-    '^GSPC': 'SP500', 'Sales': 'New Car Sales'}, inplace=True)
+    '^GSPC': 'SP500', 'Sales': 'New Car Sales',
+    'prediction_1': 'First approach',
+    'prediction_2': 'Second approach',
+    'prediction_3': 'Third approach'}, inplace=True)
 data["DateTime"] = pd.to_datetime(data["DateTime"], format="%Y-%m")
 
 # Create a plotly plot for use by dcc.Graph().
@@ -57,6 +60,7 @@ app.layout = html.Div(
                             className="dropdown",
                             options=[{"label": var, "value": var} for var in data.columns[1:]],
                             clearable=False,
+                            multi=True,
                             value="New Car Sales"
                         )
                     ]
@@ -89,21 +93,21 @@ app.layout = html.Div(
     ]
 )
 
-
 @app.callback(
     Output("price-chart", "figure"),
     Input("var-filter", "value"),
     Input("date-range", "start_date"),
     Input("date-range", "end_date")
 )
-def update_chart(metal, start_date, end_date):
+def update_chart(selected_vars, start_date, end_date):
     filtered_data = data.loc[(data.DateTime >= start_date) & (data.DateTime <= end_date)]
+
     # Create a plotly plot for use by dcc.Graph().
     fig = px.line(
         filtered_data,
         title="New Car Sales in Canada 2012-2022",
         x="DateTime",
-        y=[metal]
+        y=selected_vars
     )
 
     fig.update_layout(
@@ -118,7 +122,6 @@ def update_chart(metal, start_date, end_date):
     )
 
     return fig
-
 
 if __name__ == "__main__":
     app.run_server(debug=True)
